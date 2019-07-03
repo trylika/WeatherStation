@@ -26,7 +26,9 @@ void setup();
 void loop();
 void initBME280();
 void initCCS811();
-void readData();
-void printData();
+void updateDataBME280();
+void updateDataCCS811();
+void prepareData();
+void updateScreen();
 
 #endif

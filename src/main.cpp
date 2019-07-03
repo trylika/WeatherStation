@@ -15,12 +15,15 @@ void setup() {
 
     if (sensorBME280connected || sensorCCS811connected) {
         DisplayHelper::clearScreen();
+        DisplayHelper::display.setTextSize(2);
     }
 }
 
 void loop() {
-    readData();
-    printData();
+    updateDataBME280();
+    updateDataCCS811();
+    prepareData();
+    updateScreen();
     delay(1000);
 }
 
@@ -44,7 +47,7 @@ void initBME280() {
         int16_t backupX = DisplayHelper::display.getCursorX();
         int16_t backupY = DisplayHelper::display.getCursorY();
         for(int i=1; i<=100; i++) {
-            readData();
+            updateDataBME280();
             if ((i % 5) == 0) {
                 DisplayHelper::display.setCursor(backupX, backupY);
                 DisplayHelper::display.print(i);
@@ -77,7 +80,7 @@ void initCCS811() {
     }
 }
 
-void readData() {
+void updateDataBME280() {
     if (sensorBME280connected) {
         sensorBME280.setMode(MODE_FORCED);
         while(sensorBME280.isMeasuring() == false) ; //Wait for sensor to start measurment
@@ -90,7 +93,9 @@ void readData() {
 
         sensorBME280.setMode(MODE_SLEEP);
     }
+}
 
+void updateDataCCS811() {
     if (sensorCCS811connected) {
         if (sensorCCS811.dataAvailable()) {
             sensorCCS811.readAlgorithmResults();
@@ -105,76 +110,56 @@ void readData() {
     }
 }
 
-void printData() {
+void prepareData() {
+    if (sensorBME280connected) {
+        dtostrf(dataTemperature, 5, 2, DisplayHelper::displayBuffer[0]);
+        sprintf(DisplayHelper::displayBuffer[0], "%s%cC", DisplayHelper::displayBuffer[0], 247);
+        DisplayHelper::displayBufferColor[0] = DisplayHelper::mapTemperatureColor(dataTemperature);
+
+        float heatIndex = WeatherCalculations::getHeatIndex(dataTemperature, dataHumidity);
+        dtostrf(heatIndex, 5, 2, DisplayHelper::displayBuffer[1]);
+        sprintf(DisplayHelper::displayBuffer[1], "%s%cC HI", DisplayHelper::displayBuffer[1], 247);
+        DisplayHelper::displayBufferColor[1] = DisplayHelper::mapTemperatureColor(heatIndex);
+
+        dtostrf(dataDew, 5, 2, DisplayHelper::displayBuffer[2]);
+        sprintf(DisplayHelper::displayBuffer[2], "%s%cC DEW", DisplayHelper::displayBuffer[2], 247);
+        DisplayHelper::displayBufferColor[2] = DisplayHelper::mapDewPointColor(dataDew);
+
+        char tempString[3];
+        float absoluteHumidity = WeatherCalculations::getAbsoluteHumidity(dataTemperature, dataHumidity);
+        dtostrf(dataHumidity, 5, 2, DisplayHelper::displayBuffer[3]);
+        dtostrf(absoluteHumidity, 2, 0, tempString);
+        sprintf(DisplayHelper::displayBuffer[3], "%s%% %s%% H", DisplayHelper::displayBuffer[3], tempString);
+        DisplayHelper::displayBufferColor[3] = ST7735_GREEN;
+
+        dtostrf(dataPressure / 100.0F, 7, 2, DisplayHelper::displayBuffer[4]);
+        sprintf(DisplayHelper::displayBuffer[4], "%s hPa", DisplayHelper::displayBuffer[4]);
+        DisplayHelper::displayBufferColor[4] = ST7735_GREEN;
+    }
+
+    if (sensorCCS811connected) {
+        sprintf(DisplayHelper::displayBuffer[5], "%d ppm CO2", dataCO2);
+        DisplayHelper::displayBufferColor[5] = ST7735_GREEN;
+
+        sprintf(DisplayHelper::displayBuffer[6], "%d ppb TVOC", dataTVOC);
+        DisplayHelper::displayBufferColor[6] = ST7735_GREEN;
+    }
+}
+
+void updateScreen() {
     if (!sensorBME280connected and !sensorCCS811connected) {
         return;
     }
 
-    char dataBuf[16];
-    char tempString[10];
-    char tempStringTwo[10];
-    DisplayHelper::display.setTextSize(2);
+    if (millis() - DisplayHelper::lastScreenUpdate < DISPLAY_DELAY) {
+        return;
+    }
 
+    for (int i = 0; i < DISPLAY_LINES; i++) {
+        DisplayHelper::display.setCursor(DISPLAY_OFFSET_X, (DISPLAY_OFFSET_Y * (i + 1)) + (i * 15));
+        DisplayHelper::display.setTextColor(DisplayHelper::displayBufferColor[i], ST7735_BLACK);
+        DisplayHelper::display.print(DisplayHelper::displayBuffer[i]);
+    }
 
-
-    dtostrf(dataTemperature, 5, 2, tempString);
-    sprintf(dataBuf, "%s%cC", tempString, 247);
-
-    DisplayHelper::display.setCursor(4, 8);
-    DisplayHelper::display.setTextColor(DisplayHelper::mapTemperatureColor(dataTemperature), ST7735_BLACK);
-    DisplayHelper::display.print(dataBuf);
-
-
-
-    float heatIndex = WeatherCalculations::getHeatIndex(dataTemperature, dataHumidity);
-    dtostrf(heatIndex, 5, 2, tempString);
-    sprintf(dataBuf, "%s%cC    HI", tempString, 247);
-
-    DisplayHelper::display.setCursor(4, 32);
-    DisplayHelper::display.setTextColor(DisplayHelper::mapTemperatureColor(heatIndex), ST7735_BLACK);
-    DisplayHelper::display.print(dataBuf);
-
-
-
-    dtostrf(dataDew, 5, 2, tempString);
-    sprintf(dataBuf, "%s%cC   DEW", tempString, 247);
-
-    DisplayHelper::display.setCursor(4, 56);
-    DisplayHelper::display.setTextColor(DisplayHelper::mapDewPointColor(dataDew), ST7735_BLACK);
-    DisplayHelper::display.print(dataBuf);
-
-
-
-    float absoluteHumidity = WeatherCalculations::getAbsoluteHumidity(dataTemperature, dataHumidity);
-    dtostrf(dataHumidity, 5, 2, tempString);
-    dtostrf(absoluteHumidity, 2, 0, tempStringTwo);
-    sprintf(dataBuf, "%s%% %s%%  H", tempString, tempStringTwo);
-
-    DisplayHelper::display.setCursor(4, 80);
-    DisplayHelper::display.setTextColor(ST7735_GREEN, ST7735_BLACK);
-    DisplayHelper::display.print(dataBuf);
-
-
-  //getCO2() gets the previously read data from the library
-//   Serial.println("CCS811 data:");
-//   Serial.print(" CO2 concentration : ");
-//   Serial.print(myCCS811.getCO2());
-//   Serial.println(" ppm");
-
-//   //getTVOC() gets the previously read data from the library
-//   Serial.print(" TVOC concentration : ");
-//   Serial.print(myCCS811.getTVOC());
-// Serial.println(" ppb");
-
-
-//   Serial.print((myBME280.readFloatPressure() * 0.0002953), 2);
-// Serial.println(" InHg");
-
-
-    dtostrf(dataPressure / 100.0F, 7, 2, tempString);
-    sprintf(dataBuf, "%s   hPa", tempString);
-
-    DisplayHelper::display.setCursor(4, 104);
-    DisplayHelper::display.setTextColor(ST7735_GREEN, ST7735_BLACK);
-    DisplayHelper::display.print(dataBuf);
+    DisplayHelper::lastScreenUpdate = millis();
 }

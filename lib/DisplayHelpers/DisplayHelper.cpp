@@ -2,6 +2,9 @@
 
 namespace DisplayHelper {
     Adafruit_ST7735 display = Adafruit_ST7735(DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);
+    char displayBuffer[DISPLAY_LINES][16];
+    uint16_t displayBufferColor[DISPLAY_LINES];
+    unsigned long lastScreenUpdate = 0;
 
     void initDisplay() {
         display.initR(INITR_BLACKTAB);
