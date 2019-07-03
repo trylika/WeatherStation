@@ -1,7 +1,6 @@
 #ifndef DisplayHelper_H
 #define DisplayHelper_H
 
-#include "Arduino.h"
 #include "Adafruit_ST7735.h"
 
 #define DISPLAY_CS 10
@@ -17,6 +16,8 @@ namespace DisplayHelper {
     void printSuccess();
     void printFailure();
     void clearScreen();
+    uint16_t mapDewPointColor(double temperature);
+    uint16_t mapTemperatureColor(float temperature);
 }
 
 #endif

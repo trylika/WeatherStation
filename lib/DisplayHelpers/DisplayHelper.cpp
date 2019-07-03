@@ -6,7 +6,7 @@ namespace DisplayHelper {
     void initDisplay() {
         display.initR(INITR_BLACKTAB);
         display.setRotation(3);
-        display.fillScreen(ST7735_BLACK);
+        clearScreen();
     }
 
     void loadingStart() {
@@ -36,5 +36,61 @@ namespace DisplayHelper {
 
     void clearScreen() {
         display.fillScreen(ST7735_BLACK);
-    }   
+    }
+
+    uint16_t mapDewPointColor(double temperature) {
+        if (temperature<10.0F) { // A bit dry
+            return ST7735_BLUE;
+        }
+
+        if (10.0F<temperature && temperature<12.0F) { // Very comfortabile
+            return ST7735_CYAN;
+        }
+
+        if (12.0F<temperature && temperature<16.0F) { // Comfortabile
+            return ST7735_GREEN;
+        }
+
+        if (16.0F<temperature && temperature<18.0F) { // OKish
+            return ST7735_YELLOW;
+        }
+
+        if (18.0F<temperature && temperature<21.0F) { // Not ok
+            return ST7735_MAGENTA;
+        }
+
+        if (21.0F<temperature && temperature<24.0F) { // Very not ok
+            return ST7735_RED;
+        }
+
+        if (24.0F<temperature && temperature<26.0F) { // x(
+            return ST7735_RED;
+        }
+
+        if (26.0F<temperature) { // x(
+            return ST7735_RED;
+        }
+
+        return ST7735_RED;
+    }
+
+    uint16_t mapTemperatureColor(float temperature) {
+        if (temperature<14.0F) {
+            return ST7735_BLUE;
+        }
+
+        if (14.0F<temperature && temperature<18.0F) {
+            return ST7735_CYAN;
+        }
+
+        if (18.0F<temperature && temperature<24.0F) {
+            return ST7735_GREEN;
+        }
+
+        if (24.0F<temperature) {
+            return ST7735_RED;
+        }
+
+        return ST7735_RED;
+    }
 }

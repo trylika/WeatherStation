@@ -2,8 +2,6 @@
 #define WeatherCalculations_h
 
 #include "Arduino.h"
-#include "math.h"
-#include "Adafruit_ST7735.h"
 
 #define hi_coeff1 -42.379
 #define hi_coeff2   2.04901523
@@ -18,9 +16,6 @@
 namespace WeatherCalculations {
     float getHeatIndex(float temperature, float humidity);
     float getAbsoluteHumidity(float temperature, float humidity);
-    float getDewPoint(float temperature, float humidity);
-    uint16_t mapDewPointColor(float temperature);
-    uint16_t mapTemperatureColor(float temperature);
 }
 
 #endif
