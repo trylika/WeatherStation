@@ -5,14 +5,9 @@
 #include <Wire.h>
 #include <Adafruit_ST7735.h>
 #include <WeatherCalculations.h>
+#include <DisplayHelper.h>
 #include <SparkFunBME280.h>
 #include <SparkFunCCS811.h>
-
-#define DISPLAY_CS 10
-#define DISPLAY_RST 8
-#define DISPLAY_DC 9
-
-Adafruit_ST7735 display = Adafruit_ST7735(DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);
 
 #define BME280_I2C 0x76
 BME280 sensorBME280;
