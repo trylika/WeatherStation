@@ -6,16 +6,12 @@
 #define DISPLAY_CS 10
 #define DISPLAY_RST 8
 #define DISPLAY_DC 9
-#define DISPLAY_LINES 8
 #define DISPLAY_INITIAL_OFFSET_X 2
-#define DISPLAY_INITIAL_OFFSET_Y 6
-#define DISPLAY_OFFSET_Y 2
+#define DISPLAY_INITIAL_OFFSET_Y 1
 #define DISPLAY_DELAY 1000
 
 namespace DisplayHelper {
     extern Adafruit_ST7735 display;
-    extern char displayBuffer[DISPLAY_LINES][16];
-    extern uint16_t displayBufferColor[DISPLAY_LINES];
     extern unsigned long lastScreenUpdate;
 
     void initDisplay();
@@ -23,9 +19,13 @@ namespace DisplayHelper {
     void loadingEnd();
     void printSuccess();
     void printFailure();
+    void printInformation(const char str[]);
     void clearScreen();
-    uint16_t mapDewPointColor(double temperature);
     uint16_t mapTemperatureColor(float temperature);
+    uint16_t mapDewPointColor(double temperature);
+    uint16_t mapHumidityColor(double humidity);
+    uint16_t mapCO2Color(uint16_t co2ppm);
+    uint16_t mapTVOCColor(uint16_t tvocppb);
 }
 
 #endif

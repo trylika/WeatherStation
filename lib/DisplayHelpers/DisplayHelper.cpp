@@ -2,8 +2,6 @@
 
 namespace DisplayHelper {
     Adafruit_ST7735 display = Adafruit_ST7735(DISPLAY_CS, DISPLAY_DC, DISPLAY_RST);
-    char displayBuffer[DISPLAY_LINES][16];
-    uint16_t displayBufferColor[DISPLAY_LINES];
     unsigned long lastScreenUpdate = 0;
 
     void initDisplay() {
@@ -13,18 +11,15 @@ namespace DisplayHelper {
     }
 
     void loadingStart() {
-        display.setCursor(0, 0);
+        display.setCursor(DISPLAY_INITIAL_OFFSET_X, DISPLAY_INITIAL_OFFSET_Y);
         display.setTextColor(ST7735_WHITE, ST7735_BLACK);
-        display.println();
         display.println("Loading");
-        display.println();
     }
 
     void loadingEnd() {
+        display.setCursor(DISPLAY_INITIAL_OFFSET_X, display.getCursorY());
         display.setTextColor(ST7735_WHITE, ST7735_BLACK);
-        display.println();
         display.println("Done");
-        display.println();
     }
 
     void printSuccess() {
@@ -41,40 +36,10 @@ namespace DisplayHelper {
         display.fillScreen(ST7735_BLACK);
     }
 
-    uint16_t mapDewPointColor(double temperature) {
-        if (temperature<10.0F) { // A bit dry
-            return ST7735_BLUE;
-        }
-
-        if (10.0F<temperature && temperature<12.0F) { // Very comfortabile
-            return ST7735_CYAN;
-        }
-
-        if (12.0F<temperature && temperature<16.0F) { // Comfortabile
-            return ST7735_GREEN;
-        }
-
-        if (16.0F<temperature && temperature<18.0F) { // OKish
-            return ST7735_YELLOW;
-        }
-
-        if (18.0F<temperature && temperature<21.0F) { // Not ok
-            return ST7735_MAGENTA;
-        }
-
-        if (21.0F<temperature && temperature<24.0F) { // Very not ok
-            return ST7735_RED;
-        }
-
-        if (24.0F<temperature && temperature<26.0F) { // x(
-            return ST7735_RED;
-        }
-
-        if (26.0F<temperature) { // x(
-            return ST7735_RED;
-        }
-
-        return ST7735_RED;
+    void printInformation(const char str[]) {
+        display.setCursor(DISPLAY_INITIAL_OFFSET_X, display.getCursorY());
+        display.setTextColor(ST7735_WHITE, ST7735_BLACK);
+        display.print(str);
     }
 
     uint16_t mapTemperatureColor(float temperature) {
@@ -82,18 +47,95 @@ namespace DisplayHelper {
             return ST7735_BLUE;
         }
 
-        if (14.0F<temperature && temperature<18.0F) {
+        if (temperature<18.0F) {
             return ST7735_CYAN;
         }
 
-        if (18.0F<temperature && temperature<24.0F) {
+        if (temperature<24.0F) {
             return ST7735_GREEN;
         }
 
-        if (24.0F<temperature) {
+        // temperature>24.0F
+        return ST7735_RED;
+    }
+
+    uint16_t mapDewPointColor(double temperature) {
+        if (temperature<10.0F) { // A bit dry
+            return ST7735_BLUE;
+        }
+
+        if (temperature<12.0F) { // Very comfortabile
+            return ST7735_CYAN;
+        }
+
+        if (temperature<16.0F) { // Comfortabile
+            return ST7735_GREEN;
+        }
+
+        if (temperature<18.0F) { // OKish
+            return ST7735_YELLOW;
+        }
+
+        if (temperature<21.0F) { // Not ok
+            return ST7735_MAGENTA;
+        }
+
+        if (temperature<24.0F) { // Very not ok
             return ST7735_RED;
         }
 
+        if (temperature<26.0F) { // x(
+            return ST7735_RED;
+        }
+
+        // temperature>26.0F
+        return ST7735_RED;
+    }
+
+    uint16_t mapHumidityColor(double humidity) {
+        if (humidity>45 && humidity<55) {
+            return ST7735_GREEN;
+        }
+
+        if (humidity>30 && humidity<60) {
+            return ST7735_YELLOW;
+        }
+
+        // humidity>60% humidity<25%
+        return ST7735_RED;
+    }
+
+    uint16_t mapCO2Color(uint16_t co2ppm) {
+        if (co2ppm < 800) {
+            return ST7735_GREEN;
+        }
+
+        if (co2ppm < 2000) {
+            return ST7735_YELLOW;
+        }
+
+        // co2ppm>5000
+        return ST7735_RED;
+    }
+
+    uint16_t mapTVOCColor(uint16_t tvocppb) {
+        if (tvocppb < 150) {
+            return ST7735_GREEN;
+        }
+
+        if (tvocppb < 500) {
+            return ST7735_CYAN;
+        }
+
+        if (tvocppb < 1500) {
+            return ST7735_YELLOW;
+        }
+
+        if (tvocppb < 5000) {
+            return ST7735_MAGENTA;
+        }
+
+        // tvocppb>5000
         return ST7735_RED;
     }
 }
