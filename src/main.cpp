@@ -15,7 +15,6 @@ void setup() {
 
     if (sensorBME280connected || sensorCCS811connected) {
         DisplayHelper::clearScreen();
-        DisplayHelper::display.setTextSize(2);
     }
 }
 
@@ -24,7 +23,7 @@ void loop() {
     updateDataCCS811();
     prepareData();
     updateScreen();
-    delay(1000);
+    delay(500);
 }
 
 void initBME280() {
@@ -72,7 +71,7 @@ void initCCS811() {
 
     if (sensorCCS811connected) {
         sensorCCS811.disableInterrupts();
-        sensorCCS811.setDriveMode(1);
+        sensorCCS811.setDriveMode(1); // 1S
 
         DisplayHelper::printSuccess();
     } else {
@@ -122,27 +121,29 @@ void prepareData() {
         DisplayHelper::displayBufferColor[1] = DisplayHelper::mapTemperatureColor(heatIndex);
 
         dtostrf(dataDew, 5, 2, DisplayHelper::displayBuffer[2]);
-        sprintf(DisplayHelper::displayBuffer[2], "%s%cC DEW", DisplayHelper::displayBuffer[2], 247);
+        sprintf(DisplayHelper::displayBuffer[2], "%s%cC Dew", DisplayHelper::displayBuffer[2], 247);
         DisplayHelper::displayBufferColor[2] = DisplayHelper::mapDewPointColor(dataDew);
 
-        char tempString[3];
-        float absoluteHumidity = WeatherCalculations::getAbsoluteHumidity(dataTemperature, dataHumidity);
         dtostrf(dataHumidity, 5, 2, DisplayHelper::displayBuffer[3]);
-        dtostrf(absoluteHumidity, 2, 0, tempString);
-        sprintf(DisplayHelper::displayBuffer[3], "%s%% %s%% H", DisplayHelper::displayBuffer[3], tempString);
+        sprintf(DisplayHelper::displayBuffer[3], "%s%% RH", DisplayHelper::displayBuffer[3]);
         DisplayHelper::displayBufferColor[3] = ST7735_GREEN;
 
-        dtostrf(dataPressure / 100.0F, 7, 2, DisplayHelper::displayBuffer[4]);
-        sprintf(DisplayHelper::displayBuffer[4], "%s hPa", DisplayHelper::displayBuffer[4]);
+        float absoluteHumidity = WeatherCalculations::getAbsoluteHumidity(dataTemperature, dataHumidity);
+        dtostrf(absoluteHumidity, 5, 2, DisplayHelper::displayBuffer[4]);
+        sprintf(DisplayHelper::displayBuffer[4], "%s%% AH", DisplayHelper::displayBuffer[4]);
         DisplayHelper::displayBufferColor[4] = ST7735_GREEN;
+
+        dtostrf(dataPressure / 100.0F, 7, 2, DisplayHelper::displayBuffer[5]);
+        sprintf(DisplayHelper::displayBuffer[5], "%shPa", DisplayHelper::displayBuffer[5]);
+        DisplayHelper::displayBufferColor[5] = ST7735_GREEN;
     }
 
     if (sensorCCS811connected) {
-        sprintf(DisplayHelper::displayBuffer[5], "%d ppm CO2", dataCO2);
-        DisplayHelper::displayBufferColor[5] = ST7735_GREEN;
-
-        sprintf(DisplayHelper::displayBuffer[6], "%d ppb TVOC", dataTVOC);
+        sprintf(DisplayHelper::displayBuffer[6], "CO2 %dppm", dataCO2);
         DisplayHelper::displayBufferColor[6] = ST7735_GREEN;
+
+        sprintf(DisplayHelper::displayBuffer[7], "TVOC %dppb", dataTVOC);
+        DisplayHelper::displayBufferColor[7] = ST7735_GREEN;
     }
 }
 
@@ -155,10 +156,25 @@ void updateScreen() {
         return;
     }
 
+    int y = DISPLAY_INITIAL_OFFSET_Y;
     for (int i = 0; i < DISPLAY_LINES; i++) {
-        DisplayHelper::display.setCursor(DISPLAY_OFFSET_X, (DISPLAY_OFFSET_Y * (i + 1)) + (i * 15));
-        DisplayHelper::display.setTextColor(DisplayHelper::displayBufferColor[i], ST7735_BLACK);
+        if (i == 0 || i == 3 || i == 5 || i == 6 || i == 7) {
+            DisplayHelper::display.setTextSize(2);
+            DisplayHelper::display.fillRect(0, y, 160, 16, ST7735_BLACK);
+        } else {
+            DisplayHelper::display.setTextSize(1);
+            DisplayHelper::display.fillRect(0, y, 160, 8, ST7735_BLACK);
+        }
+
+        DisplayHelper::display.setCursor(DISPLAY_INITIAL_OFFSET_X, y);
+        DisplayHelper::display.setTextColor(DisplayHelper::displayBufferColor[i]);//, ST7735_BLACK);
         DisplayHelper::display.print(DisplayHelper::displayBuffer[i]);
+
+        if (i == 0 || i == 3 || i == 5 || i == 6 || i == 7) {
+            y += DISPLAY_OFFSET_Y + 16;
+        } else {
+            y += DISPLAY_OFFSET_Y + 8;
+        }
     }
 
     DisplayHelper::lastScreenUpdate = millis();
