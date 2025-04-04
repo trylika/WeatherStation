@@ -35,12 +35,12 @@ void initBME280() {
     sensorBME280connected = sensorBME280.beginI2C();
 
     if (sensorBME280connected) {
-        sensorBME280.setFilter(2); //0 to 4 is valid. Filter coefficient. See 3.4.4
-        sensorBME280.setStandbyTime(0); //0 to 7 valid. Time between readings. See table 27.
+        sensorBME280.setFilter(2); // 0 to 4 is valid. Filter coefficient. See 3.4.4
+        sensorBME280.setStandbyTime(0); // 0 to 7 valid. Time between readings. See table 27.
 
-        sensorBME280.setTempOverSample(5); //0 .. 5 sets 0 to 16. 0 disables temp sensing. See table 24.
-        sensorBME280.setPressureOverSample(5); //0 .. 5 sets 0 to 16. 0 disables pressure sensing. See table 23.
-        sensorBME280.setHumidityOverSample(5); //0 .. 5 sets 0 to 16. 0 disables humidity sensing. See table 19.
+        sensorBME280.setTempOverSample(5); // 0 .. 5 sets 0 to 16. 0 disables temp sensing. See table 24.
+        sensorBME280.setPressureOverSample(5); // 0 .. 5 sets 0 to 16. 0 disables pressure sensing. See table 23.
+        sensorBME280.setHumidityOverSample(5); // 0 .. 5 sets 0 to 16. 0 disables humidity sensing. See table 19.
 
         sensorBME280.setMode(MODE_SLEEP); // MODE_NORMAL
 
@@ -82,8 +82,8 @@ void initCCS811() {
 void updateDataBME280() {
     if (sensorBME280connected) {
         sensorBME280.setMode(MODE_FORCED);
-        while(sensorBME280.isMeasuring() == false) ; //Wait for sensor to start measurment
-        while(sensorBME280.isMeasuring() == true) ; //Hang out while sensor completes the reading
+        while(sensorBME280.isMeasuring() == false) ; // Wait for sensor to start measurment
+        while(sensorBME280.isMeasuring() == true) ; // Hang out while sensor completes the reading
 
         dataTemperature = sensorBME280.readTempC();
         dataDew = sensorBME280.dewPointC();
